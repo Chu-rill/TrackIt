@@ -1,17 +1,17 @@
-'use client'
+"use client";
 
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 export default function Header({ userEmail }: { userEmail: string }) {
-  const router = useRouter()
-  const supabase = createClient()
+  const router = useRouter();
+  const supabase = createClient();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh()
-  }
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  };
 
   return (
     <header className="bg-white dark:bg-gray-800 shadow">
@@ -19,7 +19,7 @@ export default function Header({ userEmail }: { userEmail: string }) {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              💰 Expense Tracker
+              💰 TrackIt
             </h1>
           </div>
           <div className="flex items-center gap-4">
@@ -36,5 +36,5 @@ export default function Header({ userEmail }: { userEmail: string }) {
         </div>
       </div>
     </header>
-  )
+  );
 }

@@ -1,15 +1,17 @@
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import Link from "next/link";
 
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (user) {
-    redirect('/dashboard')
+    redirect("/dashboard");
   }
 
   return (
@@ -17,12 +19,12 @@ export default async function Home() {
       <main className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-6xl font-bold text-gray-900 dark:text-white mb-6">
-            💰 Expense Tracker
+            💰 TrackIt
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-12 max-w-2xl mx-auto">
-            Take control of your finances with AI-powered insights. Track your income and expenses,
-            get weekly and monthly summaries, and receive personalized recommendations to improve
-            your spending habits.
+            Take control of your finances with AI-powered insights. Track your
+            income and expenses, get weekly and monthly summaries, and receive
+            personalized recommendations to improve your spending habits.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
@@ -47,7 +49,8 @@ export default async function Home() {
                 Track Everything
               </h3>
               <p className="text-gray-600 dark:text-gray-400">
-                Log your income and expenses with detailed categories and descriptions
+                Log your income and expenses with detailed categories and
+                descriptions
               </p>
             </div>
 
@@ -74,5 +77,5 @@ export default async function Home() {
         </div>
       </main>
     </div>
-  )
+  );
 }

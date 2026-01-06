@@ -31,17 +31,22 @@ export default function SignupPage() {
     setLoading(true)
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
       })
 
-      if (error) throw error
+      if (error) {
+        console.error('Signup error:', error)
+        throw error
+      }
 
+      console.log('Signup successful:', data)
       router.push('/dashboard')
       router.refresh()
     } catch (err: any) {
-      setError(err.message)
+      console.error('Caught error:', err)
+      setError(err.message || 'An error occurred during signup')
     } finally {
       setLoading(false)
     }
