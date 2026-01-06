@@ -23,7 +23,12 @@ export type Category = {
   created_at: string
 }
 
-export type Period = 'weekly' | 'monthly'
+export type Period = 'weekly' | 'monthly' | 'custom'
+
+export type DateRange = {
+  startDate: string
+  endDate: string
+}
 
 export type Summary = {
   totalIncome: number

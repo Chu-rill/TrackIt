@@ -172,6 +172,7 @@ export default function DashboardClient({
         weeklyTransactions={view === 'weekly' ? periodTransactions : []}
         monthlyTransactions={view === 'monthly' ? periodTransactions : []}
         view={view}
+        userId={userId}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">

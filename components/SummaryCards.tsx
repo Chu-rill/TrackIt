@@ -8,12 +8,14 @@ type SummaryCardsProps = {
   weeklyTransactions: Transaction[];
   monthlyTransactions: Transaction[];
   view?: "weekly" | "monthly";
+  userId: string;
 };
 
 export default function SummaryCards({
   weeklyTransactions,
   monthlyTransactions,
   view = "monthly",
+  userId,
 }: SummaryCardsProps) {
   const [showAIInsights, setShowAIInsights] = useState(false);
 
@@ -121,10 +123,8 @@ export default function SummaryCards({
 
       {showAIInsights && (
         <AIInsightsModal
-          transactions={currentPeriodTransactions}
-          period={view}
+          userId={userId}
           onClose={() => setShowAIInsights(false)}
-          onPeriodChange={() => {}} // Period is controlled by the main navigator now
         />
       )}
     </>
