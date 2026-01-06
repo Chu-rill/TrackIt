@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { GoogleGenerativeAI } from '@google/generative-ai'
-import type { Transaction, AIInsight } from '@/types'
+import { NextRequest, NextResponse } from "next/server";
+import { GoogleGenAI } from "@google/genai";
+import type { Transaction, AIInsight } from "@/types";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
+const genAI = new GoogleGenAI({});
 
 export async function POST(request: NextRequest) {
   try {
-    const { transactions, period } = await request.json()
+    const { transactions, period } = await request.json();
 
     if (!transactions || transactions.length === 0) {
       return NextResponse.json(
@@ -14,30 +14,44 @@ export async function POST(request: NextRequest) {
           insights: {
             summary: `You haven't recorded any transactions for this ${period} period yet. Start tracking your income and expenses to get personalized insights!`,
             strengths: [],
-            improvements: ['Start tracking your transactions to build better financial habits'],
-            recommendations: ['Log every transaction, no matter how small', 'Categorize your expenses accurately', 'Review your spending regularly'],
+            improvements: [
+              "Start tracking your transactions to build better financial habits",
+            ],
+            recommendations: [
+              "Log every transaction, no matter how small",
+              "Categorize your expenses accurately",
+              "Review your spending regularly",
+            ],
           },
         },
         { status: 200 }
-      )
+      );
     }
 
     // Calculate totals
     const totalIncome = transactions
-      .filter((t: Transaction) => t.type === 'income')
-      .reduce((sum: number, t: Transaction) => sum + parseFloat(t.amount.toString()), 0)
+      .filter((t: Transaction) => t.type === "income")
+      .reduce(
+        (sum: number, t: Transaction) => sum + parseFloat(t.amount.toString()),
+        0
+      );
 
     const totalExpenses = transactions
-      .filter((t: Transaction) => t.type === 'expense')
-      .reduce((sum: number, t: Transaction) => sum + parseFloat(t.amount.toString()), 0)
+      .filter((t: Transaction) => t.type === "expense")
+      .reduce(
+        (sum: number, t: Transaction) => sum + parseFloat(t.amount.toString()),
+        0
+      );
 
     // Group by category
-    const expensesByCategory: { [key: string]: number } = {}
+    const expensesByCategory: { [key: string]: number } = {};
     transactions
-      .filter((t: Transaction) => t.type === 'expense')
+      .filter((t: Transaction) => t.type === "expense")
       .forEach((t: Transaction) => {
-        expensesByCategory[t.category] = (expensesByCategory[t.category] || 0) + parseFloat(t.amount.toString())
-      })
+        expensesByCategory[t.category] =
+          (expensesByCategory[t.category] || 0) +
+          parseFloat(t.amount.toString());
+      });
 
     const prompt = `You are a financial advisor analyzing someone's ${period} spending habits. Here's their financial data:
 
@@ -47,8 +61,14 @@ Net Amount: $${(totalIncome - totalExpenses).toFixed(2)}
 
 Expenses by Category:
 ${Object.entries(expensesByCategory)
-  .map(([category, amount]) => `- ${category}: $${amount.toFixed(2)} (${((amount / totalExpenses) * 100).toFixed(1)}%)`)
-  .join('\n')}
+  .map(
+    ([category, amount]) =>
+      `- ${category}: $${amount.toFixed(2)} (${(
+        (amount / totalExpenses) *
+        100
+      ).toFixed(1)}%)`
+  )
+  .join("\n")}
 
 Number of Transactions: ${transactions.length}
 
@@ -66,21 +86,38 @@ Format your response as JSON with this structure:
   "recommendations": ["string"]
 }
 
-Be encouraging but honest. Focus on practical advice.`
+Be encouraging but honest. Focus on practical advice.`;
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' })
-    const result = await model.generateContent(prompt)
-    const response = await result.response
-    const text = response.text()
+    const response = await genAI.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+    });
 
-    const insights: AIInsight = JSON.parse(text)
+    // const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" });
+    // const result = await model.generateContent(prompt);
+    // const response = await result.response;
+    const text = response.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
-    return NextResponse.json({ insights })
+    // Extract JSON from markdown code blocks if present
+    let jsonText = text.trim();
+    const jsonMatch = jsonText.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
+    if (jsonMatch) {
+      jsonText = jsonMatch[1];
+    }
+
+    const insights: AIInsight = JSON.parse(jsonText);
+
+    return NextResponse.json({ insights });
   } catch (error: any) {
-    console.error('Error generating AI insights:', error)
+    console.error("Error generating AI insights:", error);
+    console.error("Error details:", {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+    });
     return NextResponse.json(
-      { error: 'Failed to generate insights' },
+      { error: "Failed to generate insights", details: error.message },
       { status: 500 }
-    )
+    );
   }
 }
