@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { Transaction, Category } from '@/types'
@@ -9,13 +9,20 @@ import { format } from 'date-fns'
 export default function TransactionList({
   initialTransactions,
   categories,
+  title = 'Recent Transactions',
 }: {
   initialTransactions: Transaction[]
   categories: Category[]
+  title?: string
 }) {
   const [transactions, setTransactions] = useState(initialTransactions)
   const router = useRouter()
   const supabase = createClient()
+
+  // Update transactions when initialTransactions prop changes
+  useEffect(() => {
+    setTransactions(initialTransactions)
+  }, [initialTransactions])
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this transaction?')) return
@@ -42,7 +49,7 @@ export default function TransactionList({
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
       <div className="p-6 border-b border-gray-200 dark:border-gray-700">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-          Recent Transactions
+          {title}
         </h2>
       </div>
 

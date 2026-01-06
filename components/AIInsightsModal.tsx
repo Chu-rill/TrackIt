@@ -55,9 +55,14 @@ export default function AIInsightsModal({
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              AI-Powered Insights
-            </h2>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                AI-Powered Insights
+              </h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                {period === 'weekly' ? 'Weekly' : 'Monthly'} analysis
+              </p>
+            </div>
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
@@ -65,29 +70,6 @@ export default function AIInsightsModal({
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
-            </button>
-          </div>
-
-          <div className="mt-4 flex gap-2">
-            <button
-              onClick={() => onPeriodChange('weekly')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                period === 'weekly'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-              }`}
-            >
-              Weekly
-            </button>
-            <button
-              onClick={() => onPeriodChange('monthly')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                period === 'monthly'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-              }`}
-            >
-              Monthly
             </button>
           </div>
         </div>

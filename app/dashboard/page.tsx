@@ -1,9 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
-import TransactionForm from "@/components/TransactionForm";
-import TransactionList from "@/components/TransactionList";
-import SummaryCards from "@/components/SummaryCards";
 import Header from "@/components/Header";
-import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
+import DashboardClient from "@/components/DashboardClient";
+import CategoryManager from "@/components/CategoryManager";
+import RealtimeStatus from "@/components/RealtimeStatus";
 import { initializeUserCategories } from "@/lib/supabase/init-user";
 
 export default async function DashboardPage() {
@@ -32,29 +31,6 @@ export default async function DashboardPage() {
     .eq("user_id", user?.id)
     .order("name");
 
-  // Calculate weekly summary
-  const now = new Date();
-  const weekStart = startOfWeek(now).toISOString().split("T")[0];
-  const weekEnd = endOfWeek(now).toISOString().split("T")[0];
-
-  const { data: weeklyTransactions } = await supabase
-    .from("transactions")
-    .select("*")
-    .eq("user_id", user?.id)
-    .gte("date", weekStart)
-    .lte("date", weekEnd);
-
-  // Calculate monthly summary
-  const monthStart = startOfMonth(now).toISOString().split("T")[0];
-  const monthEnd = endOfMonth(now).toISOString().split("T")[0];
-
-  const { data: monthlyTransactions } = await supabase
-    .from("transactions")
-    .select("*")
-    .eq("user_id", user?.id)
-    .gte("date", monthStart)
-    .lte("date", monthEnd);
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header userEmail={user?.email || ""} />
@@ -68,24 +44,18 @@ export default async function DashboardPage() {
           </p>
         </div>
 
-        <SummaryCards
-          weeklyTransactions={weeklyTransactions || []}
-          monthlyTransactions={monthlyTransactions || []}
+        <DashboardClient
+          initialTransactions={transactions || []}
+          categories={categories || []}
+          userId={user?.id || ""}
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
-          <div className="lg:col-span-1">
-            <TransactionForm categories={categories || []} />
-          </div>
-
-          <div className="lg:col-span-2">
-            <TransactionList
-              initialTransactions={transactions || []}
-              categories={categories || []}
-            />
-          </div>
+        <div className="mt-8">
+          <CategoryManager initialCategories={categories || []} />
         </div>
       </main>
+
+      <RealtimeStatus />
     </div>
   );
 }

@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Anthropic from '@anthropic-ai/sdk'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 import type { Transaction, AIInsight } from '@/types'
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-})
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
 
 export async function POST(request: NextRequest) {
   try {
@@ -70,23 +68,12 @@ Format your response as JSON with this structure:
 
 Be encouraging but honest. Focus on practical advice.`
 
-    const message = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 1024,
-      messages: [
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-    })
+    const model = genAI.getGenerativeModel({ model: 'gemini-pro' })
+    const result = await model.generateContent(prompt)
+    const response = await result.response
+    const text = response.text()
 
-    const content = message.content[0]
-    if (content.type !== 'text') {
-      throw new Error('Unexpected response type from Claude')
-    }
-
-    const insights: AIInsight = JSON.parse(content.text)
+    const insights: AIInsight = JSON.parse(text)
 
     return NextResponse.json({ insights })
   } catch (error: any) {
