@@ -1,41 +1,44 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import type { Transaction } from '@/types'
-import AIInsightsModal from './AIInsightsModal'
+import { useState } from "react";
+import type { Transaction } from "@/types";
+import AIInsightsModal from "./AIInsightsModal";
 
 type SummaryCardsProps = {
-  weeklyTransactions: Transaction[]
-  monthlyTransactions: Transaction[]
-  view?: 'weekly' | 'monthly'
-}
+  weeklyTransactions: Transaction[];
+  monthlyTransactions: Transaction[];
+  view?: "weekly" | "monthly";
+};
 
 export default function SummaryCards({
   weeklyTransactions,
   monthlyTransactions,
-  view = 'monthly',
+  view = "monthly",
 }: SummaryCardsProps) {
-  const [showAIInsights, setShowAIInsights] = useState(false)
+  const [showAIInsights, setShowAIInsights] = useState(false);
 
   const calculateSummary = (transactions: Transaction[]) => {
     const income = transactions
-      .filter((t) => t.type === 'income')
-      .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0)
+      .filter((t) => t.type === "income")
+      .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
 
     const expenses = transactions
-      .filter((t) => t.type === 'expense')
-      .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0)
+      .filter((t) => t.type === "expense")
+      .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
 
     return {
       income,
       expenses,
       net: income - expenses,
-    }
-  }
+    };
+  };
 
-  const currentPeriodTransactions = view === 'weekly' ? weeklyTransactions : monthlyTransactions
-  const summary = calculateSummary(currentPeriodTransactions)
-  const periodLabel = view === 'weekly' ? 'This Week' : 'This Month'
+  const currentPeriodTransactions =
+    view === "weekly" ? weeklyTransactions : monthlyTransactions;
+  const summary = calculateSummary(currentPeriodTransactions);
+  const absoluteValue = Math.abs(summary.net);
+
+  const periodLabel = view === "weekly" ? "This Week" : "This Month";
 
   return (
     <>
@@ -57,7 +60,9 @@ export default function SummaryCards({
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Expenses</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Expenses
+              </p>
               <p className="text-2xl font-bold text-red-600 dark:text-red-400 mt-2">
                 ${summary.expenses.toFixed(2)}
               </p>
@@ -72,20 +77,24 @@ export default function SummaryCards({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Net</p>
-              <p className={`text-2xl font-bold mt-2 ${
-                summary.net >= 0
-                  ? 'text-green-600 dark:text-green-400'
-                  : 'text-red-600 dark:text-red-400'
-              }`}>
-                ${summary.net >= 0 ? '+' : ''}${summary.net.toFixed(2)}
+              <p
+                className={`text-2xl font-bold mt-2 ${
+                  summary.net >= 0
+                    ? "text-green-600 dark:text-green-400"
+                    : "text-red-600 dark:text-red-400"
+                }`}
+              >
+                {summary.net >= 0 ? "+" : "-"}${absoluteValue.toFixed(2)}
               </p>
             </div>
-            <div className={`p-3 rounded-full ${
-              summary.net >= 0
-                ? 'bg-green-100 dark:bg-green-900/30'
-                : 'bg-red-100 dark:bg-red-900/30'
-            }`}>
-              <span className="text-2xl">{summary.net >= 0 ? '💰' : '⚠️'}</span>
+            <div
+              className={`p-3 rounded-full ${
+                summary.net >= 0
+                  ? "bg-green-100 dark:bg-green-900/30"
+                  : "bg-red-100 dark:bg-red-900/30"
+              }`}
+            >
+              <span className="text-2xl">{summary.net >= 0 ? "💰" : "⚠️"}</span>
             </div>
           </div>
         </div>
@@ -94,7 +103,9 @@ export default function SummaryCards({
       <div className="mt-6 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow p-6 text-white">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold mb-2">Get AI-Powered Insights</h3>
+            <h3 className="text-lg font-semibold mb-2">
+              Get AI-Powered Insights
+            </h3>
             <p className="text-blue-100">
               Analyze your spending habits and get personalized recommendations
             </p>
@@ -117,5 +128,5 @@ export default function SummaryCards({
         />
       )}
     </>
-  )
+  );
 }
