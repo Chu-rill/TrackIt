@@ -1,36 +1,143 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Expense Tracker with AI Insights
 
-## Getting Started
+A modern expense tracking application built with Next.js, Supabase, and AI-powered insights using Anthropic's Claude.
 
-First, run the development server:
+## Features
+
+- **User Authentication**: Secure sign-up and login with Supabase Auth
+- **Transaction Tracking**: Log income and expenses with categories and descriptions
+- **Weekly & Monthly Summaries**: Comprehensive financial overviews
+- **AI-Powered Insights**: Get personalized spending recommendations from Claude AI
+- **Category Management**: Automatic default categories for quick tracking
+- **Responsive Design**: Beautiful UI built with Tailwind CSS
+
+## Tech Stack
+
+- **Frontend**: Next.js 15 (App Router), React, TypeScript
+- **Styling**: Tailwind CSS
+- **Database**: Supabase (PostgreSQL)
+- **Authentication**: Supabase Auth
+- **AI**: Anthropic Claude API
+- **Charts**: Recharts (optional for future enhancements)
+
+## Prerequisites
+
+Before you begin, ensure you have:
+
+- Node.js 18+ installed
+- A Supabase account and project
+- An Anthropic API key
+
+## Setup Instructions
+
+### 1. Clone the repository
+
+```bash
+git clone <your-repo-url>
+cd expense-tracker
+```
+
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+### 3. Set up Supabase
+
+1. Create a new project at [supabase.com](https://supabase.com)
+2. In your Supabase dashboard, go to **SQL Editor**
+3. Copy the contents of `supabase-schema.sql` and run it in the SQL Editor
+4. This will create:
+   - `categories` table
+   - `transactions` table
+   - Row Level Security (RLS) policies
+   - Default categories for new users
+
+### 4. Configure environment variables
+
+1. Copy the example environment file:
+   ```bash
+   cp .env.local.example .env.local
+   ```
+
+2. Fill in your Supabase credentials:
+   - Go to your Supabase project settings > API
+   - Copy the Project URL and anon/public key
+
+3. Add your Anthropic API key:
+   - Get your API key from [Anthropic Console](https://console.anthropic.com/)
+
+Your `.env.local` should look like:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+ANTHROPIC_API_KEY=your-anthropic-api-key-here
+```
+
+### 5. Run the development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to see the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Usage
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. **Sign Up**: Create a new account on the signup page
+2. **Add Transactions**: Use the form to add income or expenses
+3. **View Summaries**: See your weekly and monthly financial summaries
+4. **Get AI Insights**: Click "Get Insights" to receive personalized recommendations
 
-## Learn More
+## Database Schema
 
-To learn more about Next.js, take a look at the following resources:
+### Categories Table
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Column     | Type      | Description                    |
+| ---------- | --------- | ------------------------------ |
+| id         | UUID      | Primary key                    |
+| user_id    | UUID      | Foreign key to auth.users      |
+| name       | TEXT      | Category name                  |
+| type       | TEXT      | 'income' or 'expense'          |
+| icon       | TEXT      | Emoji icon (optional)          |
+| created_at | TIMESTAMP | Creation timestamp             |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Transactions Table
 
-## Deploy on Vercel
+| Column      | Type          | Description                |
+| ----------- | ------------- | -------------------------- |
+| id          | UUID          | Primary key                |
+| user_id     | UUID          | Foreign key to auth.users  |
+| type        | TEXT          | 'income' or 'expense'      |
+| amount      | DECIMAL(12,2) | Transaction amount         |
+| category    | TEXT          | Category name              |
+| description | TEXT          | Optional description       |
+| date        | DATE          | Transaction date           |
+| created_at  | TIMESTAMP     | Creation timestamp         |
+| updated_at  | TIMESTAMP     | Last update timestamp      |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Security
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- All tables use Row Level Security (RLS)
+- Users can only access their own data
+- Authentication handled by Supabase Auth
+- API keys stored in environment variables
+
+## Future Enhancements
+
+- Budget setting and tracking
+- Data visualization with charts
+- Export transactions to CSV
+- Recurring transaction templates
+- Multi-currency support
+- Mobile app (React Native)
+
+## License
+
+MIT
+
+## Support
+
+For issues or questions, please open an issue on GitHub.
