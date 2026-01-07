@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import type { Transaction, Category } from '@/types'
+import type { Transaction, Category, MonthlyBalance } from '@/types'
 import TransactionForm from './TransactionForm'
 import TransactionList from './TransactionList'
 import SummaryCards from './SummaryCards'
 import PeriodNavigator from './PeriodNavigator'
+import BalanceHistory from './BalanceHistory'
 import {
   startOfWeek,
   endOfWeek,
@@ -17,7 +18,8 @@ import {
   addWeeks,
   addMonths,
   subWeeks,
-  subMonths
+  subMonths,
+  format
 } from 'date-fns'
 
 type DashboardClientProps = {
@@ -35,7 +37,43 @@ export default function DashboardClient({
   const [allTransactions, setAllTransactions] = useState<Transaction[]>([])
   const [view, setView] = useState<'weekly' | 'monthly'>('monthly')
   const [currentPeriodDate, setCurrentPeriodDate] = useState(new Date())
+  const [monthlyBalance, setMonthlyBalance] = useState<MonthlyBalance | null>(null)
+  const [isInitializing, setIsInitializing] = useState(false)
+  const [balanceRefreshKey, setBalanceRefreshKey] = useState(0)
   const supabase = createClient()
+
+  const handleInitializeBalances = async () => {
+    setIsInitializing(true)
+    try {
+      const response = await fetch('/api/init-balances', { method: 'POST' })
+      const data = await response.json()
+
+      if (response.ok) {
+        console.log('✅ Balances initialized:', data)
+        alert(`Success! Initialized ${data.count} monthly balances.`)
+        // Trigger a refresh of balance history and monthly balance
+        setBalanceRefreshKey(prev => prev + 1)
+        // Also trigger monthly balance refresh
+        const { data: refreshedTransactions } = await supabase
+          .from('transactions')
+          .select('*')
+          .eq('user_id', userId)
+          .order('date', { ascending: false })
+
+        if (refreshedTransactions) {
+          setAllTransactions(refreshedTransactions)
+        }
+      } else {
+        console.error('❌ Failed to initialize:', data)
+        alert(`Error: ${data.error}. Check console for details.`)
+      }
+    } catch (error) {
+      console.error('Error:', error)
+      alert('Failed to initialize balances. Check console for details.')
+    } finally {
+      setIsInitializing(false)
+    }
+  }
 
   // Fetch all transactions for summaries
   useEffect(() => {
@@ -151,6 +189,37 @@ export default function DashboardClient({
     }
   })
 
+  // Fetch monthly balance when period changes (only for monthly view)
+  useEffect(() => {
+    if (view !== 'monthly') {
+      setMonthlyBalance(null)
+      return
+    }
+
+    const fetchMonthlyBalance = async () => {
+      try {
+        const periodStart = format(startOfMonth(currentPeriodDate), 'yyyy-MM-dd')
+        console.log('🏦 Fetching monthly balance for:', periodStart)
+        const response = await fetch(`/api/monthly-balances?period_start=${periodStart}`)
+
+        if (response.ok) {
+          const balance = await response.json()
+          console.log('🏦 Monthly balance received:', balance)
+          setMonthlyBalance(balance)
+        } else {
+          const errorText = await response.text()
+          console.error('Failed to fetch monthly balance:', response.status, errorText)
+          setMonthlyBalance(null)
+        }
+      } catch (error) {
+        console.error('Error fetching monthly balance:', error)
+        setMonthlyBalance(null)
+      }
+    }
+
+    fetchMonthlyBalance()
+  }, [currentPeriodDate, view, allTransactions.length])
+
   // Update transactions list to show period transactions (limited to 10)
   useEffect(() => {
     console.log('🔄 Updating transaction list. Period has', periodTransactions.length, 'transactions')
@@ -159,21 +228,40 @@ export default function DashboardClient({
 
   return (
     <>
-      <PeriodNavigator
-        view={view}
-        currentDate={currentPeriodDate}
-        onViewChange={handleViewChange}
-        onPreviousPeriod={handlePreviousPeriod}
-        onNextPeriod={handleNextPeriod}
-        onToday={handleToday}
-      />
+      <div className="flex items-center justify-between mb-4">
+        <PeriodNavigator
+          view={view}
+          currentDate={currentPeriodDate}
+          onViewChange={handleViewChange}
+          onPreviousPeriod={handlePreviousPeriod}
+          onNextPeriod={handleNextPeriod}
+          onToday={handleToday}
+        />
+
+        {view === 'monthly' && (
+          <button
+            onClick={handleInitializeBalances}
+            disabled={isInitializing}
+            className="ml-4 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isInitializing ? 'Initializing...' : '🔄 Initialize Balances'}
+          </button>
+        )}
+      </div>
 
       <SummaryCards
         weeklyTransactions={view === 'weekly' ? periodTransactions : []}
         monthlyTransactions={view === 'monthly' ? periodTransactions : []}
         view={view}
         userId={userId}
+        monthlyBalance={monthlyBalance}
       />
+
+      {view === 'monthly' && (
+        <div className="mt-8">
+          <BalanceHistory userId={userId} refreshKey={balanceRefreshKey} />
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
         <div className="lg:col-span-1">

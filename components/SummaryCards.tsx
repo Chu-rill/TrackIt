@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Transaction } from "@/types";
+import type { Transaction, MonthlyBalance } from "@/types";
 import AIInsightsModal from "./AIInsightsModal";
 
 type SummaryCardsProps = {
@@ -9,6 +9,7 @@ type SummaryCardsProps = {
   monthlyTransactions: Transaction[];
   view?: "weekly" | "monthly";
   userId: string;
+  monthlyBalance?: MonthlyBalance | null;
 };
 
 export default function SummaryCards({
@@ -16,6 +17,7 @@ export default function SummaryCards({
   monthlyTransactions,
   view = "monthly",
   userId,
+  monthlyBalance,
 }: SummaryCardsProps) {
   const [showAIInsights, setShowAIInsights] = useState(false);
 
@@ -38,19 +40,50 @@ export default function SummaryCards({
   const currentPeriodTransactions =
     view === "weekly" ? weeklyTransactions : monthlyTransactions;
   const summary = calculateSummary(currentPeriodTransactions);
-  const absoluteValue = Math.abs(summary.net);
 
+  // Use monthly balance data if available and view is monthly
+  const showBalanceCarryover = view === "monthly" && monthlyBalance;
+  const openingBalance = showBalanceCarryover ? monthlyBalance.opening_balance : 0;
+  const income = showBalanceCarryover ? monthlyBalance.total_income : summary.income;
+  const expenses = showBalanceCarryover ? monthlyBalance.total_expenses : summary.expenses;
+  const closingBalance = showBalanceCarryover ? monthlyBalance.closing_balance : summary.net;
+
+  const absoluteValue = Math.abs(closingBalance);
   const periodLabel = view === "weekly" ? "This Week" : "This Month";
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className={`grid grid-cols-1 gap-6 ${showBalanceCarryover ? "md:grid-cols-4" : "md:grid-cols-3"}`}>
+        {showBalanceCarryover && (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Opening Balance
+                </p>
+                <p
+                  className={`text-2xl font-bold mt-2 ${
+                    openingBalance >= 0
+                      ? "text-blue-600 dark:text-blue-400"
+                      : "text-red-600 dark:text-red-400"
+                  }`}
+                >
+                  ${openingBalance.toFixed(2)}
+                </p>
+              </div>
+              <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-full">
+                <span className="text-2xl">🏦</span>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Income</p>
               <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-2">
-                ${summary.income.toFixed(2)}
+                ${income.toFixed(2)}
               </p>
             </div>
             <div className="bg-green-100 dark:bg-green-900/30 p-3 rounded-full">
@@ -66,7 +99,7 @@ export default function SummaryCards({
                 Expenses
               </p>
               <p className="text-2xl font-bold text-red-600 dark:text-red-400 mt-2">
-                ${summary.expenses.toFixed(2)}
+                ${expenses.toFixed(2)}
               </p>
             </div>
             <div className="bg-red-100 dark:bg-red-900/30 p-3 rounded-full">
@@ -78,25 +111,30 @@ export default function SummaryCards({
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Net</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {showBalanceCarryover ? "Closing Balance" : "Net"}
+              </p>
               <p
                 className={`text-2xl font-bold mt-2 ${
-                  summary.net >= 0
+                  closingBalance >= 0
                     ? "text-green-600 dark:text-green-400"
                     : "text-red-600 dark:text-red-400"
                 }`}
               >
-                {summary.net >= 0 ? "+" : "-"}${absoluteValue.toFixed(2)}
+                {showBalanceCarryover ? "" : closingBalance >= 0 ? "+" : "-"}$
+                {absoluteValue.toFixed(2)}
               </p>
             </div>
             <div
               className={`p-3 rounded-full ${
-                summary.net >= 0
+                closingBalance >= 0
                   ? "bg-green-100 dark:bg-green-900/30"
                   : "bg-red-100 dark:bg-red-900/30"
               }`}
             >
-              <span className="text-2xl">{summary.net >= 0 ? "💰" : "⚠️"}</span>
+              <span className="text-2xl">
+                {closingBalance >= 0 ? "💰" : "⚠️"}
+              </span>
             </div>
           </div>
         </div>

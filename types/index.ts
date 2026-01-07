@@ -42,6 +42,19 @@ export type Summary = {
   }[]
 }
 
+export type MonthlyBalance = {
+  id?: string
+  user_id: string
+  period_start: string
+  period_end: string
+  opening_balance: number
+  total_income: number
+  total_expenses: number
+  closing_balance: number
+  created_at?: string
+  updated_at?: string
+}
+
 export type AIInsight = {
   summary: string
   strengths: string[]
